@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-
+import _ from "lodash";
 
 //mongo db
 mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
@@ -66,7 +66,7 @@ app.get("/", async function (req, res) {
 });
 
 app.get("/:customListName",async (req,res)=>{
-   const customListName = req.params.customListName;
+   const customListName =_.capitalize( req.params.customListName);
   const ab = req.params.customListName;
   try {
     const foundList = await List.findOne({ name: customListName });
