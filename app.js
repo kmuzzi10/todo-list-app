@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import _ from "lodash";
 
 //mongo db
-mongoose.connect("mongodb+srv://kmuzammil12546:muzzi123@cluster0.2npnjpc.mongodb.net/todolistDB");
+mongoose.connect("mongodb+srv://your uri @cluster0.2npnjpc.mongodb.net/todolistDB");
 const itemsSchema = mongoose.Schema({
   name: String
 })
