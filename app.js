@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import _ from "lodash";
 
 //mongo db
-mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
+mongoose.connect("mongodb+srv://kmuzammil12546:muzzi123@cluster0.2npnjpc.mongodb.net/todolistDB");
 const itemsSchema = mongoose.Schema({
   name: String
 })
@@ -157,6 +157,12 @@ app.post("/delete",async (req,res)=>{
   
 })
 
-app.listen(3000, function () {
+
+let port = process.env.PORT;
+if(port==null||port==""){
+  port=3000
+}
+
+app.listen(port, function () {
   console.log("Server started on port 3000");
 });

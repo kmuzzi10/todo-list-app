@@ -2,7 +2,9 @@ html {
   background-color: #E4E9FD;
   /* min-height: 1000px; */
   font-family: 'helvetica neue';
+ 
 }
+
 
 h1 {
   color: #fff;
@@ -93,3 +95,5 @@ input[type="text"]:focus {
   color: rgba(0, 0, 0, 0.5);
   text-align: center;
 } */
+
+

@@ -9,11 +9,15 @@
   },
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "18.12.1"
+  },
   "dependencies": {
     "body-parser": "^1.18.3",
     "ejs": "^3.1.9",
     "express": "^4.16.3",
     "lodash": "^4.17.21",
+    "mongodb": "^6.0.0",
     "mongoos": "^0.0.1-security",
     "mongoose": "^7.5.0"
   }
