@@ -32,69 +32,67 @@ const item3 = {
 const defaultItem = [item1, item2, item3]
 
 const listSchema = mongoose.Schema({
-  name:String,
-  items:[itemsSchema]
+  name: String,
+  items: [itemsSchema]
 })
 
-const List = mongoose.model("List",listSchema)
+const List = mongoose.model("List", listSchema)
 
 
 
-app.get("/", async function (req, res) {
-
-  const date = new Date();
-
-  let currentDay = String(date.getDate()).padStart(2, '0');
-
-  let currentMonth = String(date.getMonth() + 1).padStart(2, "0");
-
-  let currentYear = date.getFullYear();
-  let day = `${currentDay}-${currentMonth}-${currentYear}`;
 
 
+app.get("/list", async function (req, res) {
   //mongo
   const items = await Item.find({}).exec();
 
   if (items.length === 0) {
     Item.insertMany(defaultItem);
-    res.redirect("/")
+    res.redirect("/list")
   } else {
     res.render("list", { listTitle: "Today", newListItems: items });
   }
+  
 
 
 });
 
-app.get("/:customListName",async (req,res)=>{
-   const customListName =_.capitalize( req.params.customListName);
+app.get("/list/:customListName", async (req, res) => {
+  const customListName = _.capitalize(req.params.customListName);
   const ab = req.params.customListName;
   try {
     const foundList = await List.findOne({ name: customListName });
 
-     if(ab == "about"){
+    if (ab == "about") {
       res.render("about.ejs")
     }
     if (!foundList) {
       //create new list
       const list = new List({
-        name:customListName,
-        items:defaultItem
+        name: customListName,
+        items: defaultItem
       });
       list.save();
-      res.redirect("/"+customListName)
+      res.redirect("/list/" + customListName)
     }
-     else {
+    else {
       //show existing list
-      res.render("list",{ listTitle: foundList.name, newListItems: foundList.items })
+      res.render("list", { listTitle: foundList.name, newListItems: foundList.items })
     }
   } catch (err) {
     console.error(err);
   }
-  
-  
+
+
 })
 
-app.post("/",async function (req, res) {
+
+
+
+
+
+
+app.post("/list", async function (req, res) {
 
   const itemName = req.body.newItem;
   const listName = req.body.list;
@@ -102,16 +100,16 @@ app.post("/",async function (req, res) {
   const item = new Item({
     name: itemName
   });
-  if(listName==="Today"){
+  if (listName === "Today") {
     item.save();
-    res.redirect("/")
-  }else {
+    res.redirect("/list")
+  } else {
     try {
       const foundList = await List.findOne({ name: listName });
       if (foundList) {
         foundList.items.push(item);
         await foundList.save();
-        res.redirect("/" + listName);
+        res.redirect("/list/" + listName);
       } else {
         console.log("List doesn't exist");
         // Handle the case where the list doesn't exist
@@ -121,17 +119,22 @@ app.post("/",async function (req, res) {
       // Handle the error appropriately
     }
   }
-  
 
-  
+
+
 });
-app.post("/delete",async (req,res)=>{
+
+
+
+
+
+app.post("/delete", async (req, res) => {
   const checkBoxId = req.body.checkbox;
   const listName = req.body.listName;
-  if(listName == "Today"){
-    await Item.deleteOne({_id: checkBoxId});
-    res.redirect("/")
-  }else {
+  if (listName == "Today") {
+    await Item.deleteOne({ _id: checkBoxId });
+    res.redirect("/list")
+  } else {
     try {
       const foundList = await List.findOne({ name: listName });
       if (foundList) {
@@ -140,7 +143,7 @@ app.post("/delete",async (req,res)=>{
           { $pull: { items: { _id: checkBoxId } } }
         );
         if (updatedList) {
-          res.redirect("/" + listName);
+          res.redirect("/list/" + listName);
         } else {
           console.log("List not updated");
         }
@@ -153,14 +156,90 @@ app.post("/delete",async (req,res)=>{
       // Handle the error appropriately
     }
   }
-  
-  
+
+
+})
+
+//login schema
+const signinSchema = mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    require: true
+
+  }
+});
+const collection = new mongoose.model("collection", signinSchema);
+
+
+
+app.get("/", (req, res) => {
+  res.render("signin")
+});
+app.get("/signup", (req, res) => {
+  res.render("signup.ejs")
+});
+
+
+app.post("/signup", async (req, res) => {
+  const data = {
+    name: req.body.name,
+    password: req.body.pass
+  };
+  await collection.insertMany([data]);
+  res.redirect("/")
+})
+app.post("/signin", async (req, res) => {
+  try {
+    const check = await collection.findOne({ name: req.body.name });
+    if (check.password === req.body.pass) {
+      res.redirect("/list");
+    } else {
+      res.send("please try agin wrong password");
+    }
+  } catch {
+    res.send("wrong details")
+  }
+
 })
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//port start
+
 let port = process.env.PORT;
-if(port==null||port==""){
-  port=3000
+if (port == null || port == "") {
+  port = 3000
 }
 
 app.listen(port, function () {
