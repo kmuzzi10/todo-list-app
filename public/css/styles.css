@@ -90,10 +90,33 @@ input[type="text"]:focus {
   opacity: 1;
 }
 
-/* footer {
-  color: white;
-  color: rgba(0, 0, 0, 0.5);
-  text-align: center;
-} */
+/* Small devices (phones) */
+@media (max-width: 576px) {
+  .box {
+    max-width: 90%;
+    margin: 20px auto;
+  }
+  input[type="text"] {
+    width: 100%;
+  }
+  button {
+    width: 100%;
+  }
+}
+
+/* Medium devices (tablets) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .box {
+    max-width: 70%;
+  }
+}
+
+/* Large devices (desktops) */
+@media (min-width: 769px) {
+  .box {
+    max-width: 400px;
+  }
+}
+
 
 
