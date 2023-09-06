@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import _ from "lodash";
 
 //mongo db
-mongoose.connect("mongodb+srv://your uri @cluster0.2npnjpc.mongodb.net/todolistDB");
+mongoose.connect("mongodb+srv://your uri@cluster0.2npnjpc.mongodb.net/todolistDB");
 const itemsSchema = mongoose.Schema({
   name: String
 })
@@ -39,12 +39,26 @@ const listSchema = mongoose.Schema({
 const List = mongoose.model("List", listSchema)
 
 
+//login schema
+const signinSchema = mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    require: true
 
+  },
+  items:[itemsSchema],
+  list:listSchema
+});
+const collection = new mongoose.model("collection", signinSchema);
 
 
 app.get("/list", async function (req, res) {
   //mongo
-  const items = await Item.find({}).exec();
+  const items = await Item.find({items:[]}).exec();
 
   if (items.length === 0) {
     Item.insertMany(defaultItem);
@@ -160,19 +174,7 @@ app.post("/delete", async (req, res) => {
 
 })
 
-//login schema
-const signinSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    require: true
 
-  }
-});
-const collection = new mongoose.model("collection", signinSchema);
 
 
 
