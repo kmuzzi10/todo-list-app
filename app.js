@@ -95,11 +95,20 @@ app.get("/signup", (req, res) => {
   res.render("signup.ejs")
 });
 
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.log(err)
+    } else {
+      res.redirect("/")
+    }
+  });
 
+})
 
 
 app.get("/list", async function (req, res) {
-  
+
   if (req.isAuthenticated()) {
     try {
       const foundUser = await User.findById(req.user._id).exec();
@@ -131,19 +140,19 @@ app.get("/list/:customListName", async (req, res) => {
   if (req.isAuthenticated()) {
     const customListName = _.capitalize(req.params.customListName);
     const ab = req.params.customListName;
-    
+
     try {
       // Find the authenticated user
       const foundUser = await User.findById(req.user._id).exec();
-      
+
       if (!foundUser) {
         res.redirect("/");
         return;
       }
-      
+
       // Check if the user has a list with the specified name
       const foundList = foundUser.lists.find(list => list.name === customListName);
-      
+
       if (ab == "about") {
         res.render("about.ejs");
       } else if (!foundList) {
@@ -217,16 +226,16 @@ app.post("/list", async function (req, res) {
 
 
 
- 
+
 
 app.post("/delete", async (req, res) => {
   if (req.isAuthenticated()) {
     const checkBoxId = req.body.checkbox;
     const listName = req.body.listName;
-    
+
     try {
       const foundUser = await User.findById(req.user._id).exec();
-      
+
       if (foundUser) {
         if (listName === "Today") {
           // Delete the item from the user's items
@@ -236,7 +245,7 @@ app.post("/delete", async (req, res) => {
         } else {
           // Find the user's list by name
           const foundList = foundUser.lists.find(list => list.name === listName);
-          
+
           if (foundList) {
             // Delete the item from the specific list
             foundList.items.pull(checkBoxId); // Remove the item by _id

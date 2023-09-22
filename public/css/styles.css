@@ -1,27 +1,22 @@
+/* Common styles for all screen sizes */
 html {
   background-color: #E4E9FD;
-  /* min-height: 1000px; */
-  font-family: 'helvetica neue';
- 
+  font-family: 'Helvetica Neue', sans-serif;
 }
-
 
 h1 {
   color: #fff;
   padding: 10px;
+  font-size: 24px;
 }
 
 .box {
-  max-width: 400px;
-  margin: 50px auto;
+  max-width: 100%;
+  margin: 20px;
+  padding: 20px;
   background: #DFCCFB;
   border-radius: 5px;
   box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
-}
-
-#heading {
-  background-color: #DFCCFB;
-  text-align: center;
 }
 
 .item {
@@ -35,7 +30,7 @@ h1 {
   border-bottom: 0;
 }
 
-input:checked+p {
+input:checked + p {
   text-decoration: line-through;
   text-decoration-color: #A683E3;
 }
@@ -46,9 +41,9 @@ input[type="checkbox"] {
 
 p {
   margin: 0;
-  padding: 20px;
-  font-size: 20px;
-  font-weight: 200;
+  padding: 10px;
+  font-size: 18px;
+  font-weight: 400;
   color: #00204a;
 }
 
@@ -58,26 +53,26 @@ form.item {
 }
 
 button {
-  min-height: 50px;
-  width: 50px;
+  min-height: 40px;
+  width: 40px;
   border-radius: 50%;
   border-color: transparent;
   background-color: #A683E3;
   color: #fff;
-  font-size: 30px;
-  padding-bottom: 6px;
+  font-size: 20px;
+  padding: 0;
   border-width: 0;
 }
 
 input[type="text"] {
   text-align: center;
-  height: 60px;
-  top: 10px;
+  height: 40px;
+  top: 8px;
   border: none;
   background: transparent;
-  font-size: 20px;
-  font-weight: 200;
-  width: 313px;
+  font-size: 16px;
+  font-weight: 400;
+  width: 100%;
 }
 
 input[type="text"]:focus {
@@ -87,37 +82,33 @@ input[type="text"]:focus {
 
 ::placeholder {
   color: grey;
-  opacity: 1;
+  opacity: 0.7;
 }
 
-/* Small devices (phones) */
-@media (max-width: 576px) {
+/* Responsive Styles */
+@media screen and (min-width: 768px) {
+  h1 {
+    font-size: 36px;
+  }
+  
   .box {
-    max-width: 90%;
-    margin: 20px auto;
+    width: 80%;
+    margin: 40px auto;
   }
-  input[type="text"] {
-    width: 100%;
+  
+  p {
+    font-size: 20px;
   }
+  
   button {
-    width: 100%;
+    min-height: 50px;
+    width: 50px;
+    font-size: 24px;
+  }
+  
+  input[type="text"] {
+    height: 50px;
+    top: 10px;
+    font-size: 18px;
   }
 }
-
-/* Medium devices (tablets) */
-@media (min-width: 577px) and (max-width: 768px) {
-  .box {
-    max-width: 70%;
-  }
-}
-
-/* Large devices (desktops) */
-@media (min-width: 769px) {
-  .box {
-    max-width: 400px;
-  }
-}
-/* media queries*/
-
-
-

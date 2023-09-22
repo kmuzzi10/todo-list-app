@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+<%- include("header") -%>
     <h1>welcome to TODO list signin for making your todos </h1>
     <form action="/signin" method="post">
         <input type="text" name="username" placeholder="name">
@@ -13,5 +6,8 @@
         <input type="submit">
     </form>
     <a href="/signup">Dont have account signup now</a>
-</body>
-</html>
+
+
+
+    
+    <%- include("footer") -%>
