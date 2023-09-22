@@ -1,14 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import _ from "lodash";
+import session from 'express-session';
+import passport from 'passport';
+import passportLocalMongoose from "passport-local-mongoose";
+import findOrCreate from "mongoose-findorcreate";
 
-//mongo db
-mongoose.connect("mongodb+srv://your uri@cluster0.2npnjpc.mongodb.net/todolistDB");
-const itemsSchema = mongoose.Schema({
-  name: String
-})
-const Item = mongoose.model("item", itemsSchema)
+
 
 const app = express();
 
@@ -18,8 +17,62 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use(session({
+  secret: 'this is my secret and i am not gonna show',
+  resave: false,
+  saveUninitialized: false
 
-//mongodb
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+//mongo db
+// mongoose.connect("mongodb+srv://your uri@cluster0.2npnjpc.mongodb.net/todolistDB");
+mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
+
+//item
+const itemsSchema = mongoose.Schema({
+  name: String
+});
+const Item = mongoose.model("item", itemsSchema);
+//list
+const listSchema = mongoose.Schema({
+  name: String,
+  items: [itemsSchema],
+})
+
+const List = mongoose.model("List", listSchema);
+
+const userSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  items: [itemsSchema],
+  lists: [listSchema]
+
+});
+userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(findOrCreate);
+
+const User = mongoose.model("user", userSchema);
+
+passport.use(User.createStrategy());
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id).exec(); // Execute the query and await the result
+    done(null, user);
+  } catch (err) {
+    done(err, null);
+  }
+});
+
 const item1 = {
   name: "welcome to todo list"
 }
@@ -30,149 +83,6 @@ const item3 = {
   name: "hit checkbox to delete items"
 }
 const defaultItem = [item1, item2, item3]
-
-const listSchema = mongoose.Schema({
-  name: String,
-  items: [itemsSchema]
-})
-
-const List = mongoose.model("List", listSchema)
-
-
-//login schema
-const signinSchema = mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    require: true
-
-  },
-  items:[itemsSchema],
-  list:listSchema
-});
-const collection = new mongoose.model("collection", signinSchema);
-
-
-app.get("/list", async function (req, res) {
-  //mongo
-  const items = await Item.find({items:[]}).exec();
-
-  if (items.length === 0) {
-    Item.insertMany(defaultItem);
-    res.redirect("/list")
-  } else {
-    res.render("list", { listTitle: "Today", newListItems: items });
-  }
-  
-
-
-});
-
-app.get("/list/:customListName", async (req, res) => {
-  const customListName = _.capitalize(req.params.customListName);
-  const ab = req.params.customListName;
-  try {
-    const foundList = await List.findOne({ name: customListName });
-
-    if (ab == "about") {
-      res.render("about.ejs")
-    }
-    if (!foundList) {
-      //create new list
-      const list = new List({
-        name: customListName,
-        items: defaultItem
-      });
-      list.save();
-      res.redirect("/list/" + customListName)
-    }
-    else {
-      //show existing list
-      res.render("list", { listTitle: foundList.name, newListItems: foundList.items })
-    }
-  } catch (err) {
-    console.error(err);
-  }
-
-
-})
-
-
-
-
-
-
-
-app.post("/list", async function (req, res) {
-
-  const itemName = req.body.newItem;
-  const listName = req.body.list;
-
-  const item = new Item({
-    name: itemName
-  });
-  if (listName === "Today") {
-    item.save();
-    res.redirect("/list")
-  } else {
-    try {
-      const foundList = await List.findOne({ name: listName });
-      if (foundList) {
-        foundList.items.push(item);
-        await foundList.save();
-        res.redirect("/list/" + listName);
-      } else {
-        console.log("List doesn't exist");
-        // Handle the case where the list doesn't exist
-      }
-    } catch (err) {
-      console.error(err);
-      // Handle the error appropriately
-    }
-  }
-
-
-
-});
-
-
-
-
-
-app.post("/delete", async (req, res) => {
-  const checkBoxId = req.body.checkbox;
-  const listName = req.body.listName;
-  if (listName == "Today") {
-    await Item.deleteOne({ _id: checkBoxId });
-    res.redirect("/list")
-  } else {
-    try {
-      const foundList = await List.findOne({ name: listName });
-      if (foundList) {
-        const updatedList = await List.findOneAndUpdate(
-          { name: listName },
-          { $pull: { items: { _id: checkBoxId } } }
-        );
-        if (updatedList) {
-          res.redirect("/list/" + listName);
-        } else {
-          console.log("List not updated");
-        }
-      } else {
-        console.log("List doesn't exist");
-        // Handle the case where the list doesn't exist
-      }
-    } catch (err) {
-      console.error(err);
-      // Handle the error appropriately
-    }
-  }
-
-
-})
 
 
 
@@ -186,54 +96,204 @@ app.get("/signup", (req, res) => {
 });
 
 
-app.post("/signup", async (req, res) => {
-  const data = {
-    name: req.body.name,
-    password: req.body.pass
-  };
-  await collection.insertMany([data]);
-  res.redirect("/")
-})
-app.post("/signin", async (req, res) => {
-  try {
-    const check = await collection.findOne({ name: req.body.name });
-    if (check.password === req.body.pass) {
+
+
+app.get("/list", async function (req, res) {
+  
+  if (req.isAuthenticated()) {
+    try {
+      const foundUser = await User.findById(req.user._id).exec();
+      if (foundUser) {
+        const items = foundUser.items; // Get the items of the authenticated user
+        if (items.length === 0) {
+          foundUser.items = [
+            { name: "welcome to todo list" },
+            { name: "hit the + button to add todos" },
+            { name: "hit checkbox to delete items" }
+          ];
+          await foundUser.save();
+          res.redirect("/list")
+        } else {
+          res.render("list", { listTitle: "Today", newListItems: items });
+        }
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  } else {
+    res.redirect("/");
+  }
+});
+
+
+
+app.get("/list/:customListName", async (req, res) => {
+  if (req.isAuthenticated()) {
+    const customListName = _.capitalize(req.params.customListName);
+    const ab = req.params.customListName;
+    
+    try {
+      // Find the authenticated user
+      const foundUser = await User.findById(req.user._id).exec();
+      
+      if (!foundUser) {
+        res.redirect("/");
+        return;
+      }
+      
+      // Check if the user has a list with the specified name
+      const foundList = foundUser.lists.find(list => list.name === customListName);
+      
+      if (ab == "about") {
+        res.render("about.ejs");
+      } else if (!foundList) {
+        // Create a new list for the user
+        const newList = {
+          name: customListName,
+          items: defaultItem
+        };
+        foundUser.lists.push(newList);
+        await foundUser.save();
+        res.redirect("/list/" + customListName);
+      } else {
+        // Show the existing list for the user
+        res.render("list", { listTitle: foundList.name, newListItems: foundList.items });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  } else {
+    res.redirect("/");
+  }
+});
+
+
+app.post("/list", async function (req, res) {
+  if (req.isAuthenticated()) {
+    const itemName = req.body.newItem;
+    const listName = req.body.list;
+
+    try {
+      // Find the authenticated user
+      const foundUser = await User.findById(req.user._id).exec();
+
+      if (!foundUser) {
+        res.redirect("/");
+        return;
+      }
+
+      // Create a new item
+      const item = new Item({
+        name: itemName
+      });
+
+      if (listName === "Today") {
+        // Add the item to the user's items
+        foundUser.items.push(item);
+        await foundUser.save();
+        res.redirect("/list");
+      } else {
+        // Check if the user has a list with the specified name
+        const foundList = foundUser.lists.find(list => list.name === listName);
+
+        if (foundList) {
+          // Add the item to the specific list
+          foundList.items.push(item);
+          await foundUser.save();
+          res.redirect("/list/" + listName);
+        } else {
+          console.log("List doesn't exist");
+          // Handle the case where the list doesn't exist
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      // Handle the error appropriately
+    }
+  } else {
+    res.redirect("/");
+  }
+});
+
+
+
+ 
+
+app.post("/delete", async (req, res) => {
+  if (req.isAuthenticated()) {
+    const checkBoxId = req.body.checkbox;
+    const listName = req.body.listName;
+    
+    try {
+      const foundUser = await User.findById(req.user._id).exec();
+      
+      if (foundUser) {
+        if (listName === "Today") {
+          // Delete the item from the user's items
+          foundUser.items.pull(checkBoxId); // Remove the item by _id
+          await foundUser.save();
+          res.redirect("/list");
+        } else {
+          // Find the user's list by name
+          const foundList = foundUser.lists.find(list => list.name === listName);
+          
+          if (foundList) {
+            // Delete the item from the specific list
+            foundList.items.pull(checkBoxId); // Remove the item by _id
+            await foundUser.save(); // Save the changes
+            res.redirect("/list/" + listName);
+          } else {
+            console.log("List doesn't exist");
+            // Handle the case where the list doesn't exist
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      // Handle the error appropriately
+    }
+  } else {
+    res.redirect("/");
+  }
+});
+
+
+
+
+app.post("/signup", (req, res) => {
+
+  User.register({ username: req.body.username }, req.body.password, (err, user) => {
+    if (err) {
+      console.log(err);
+      res.redirect("/signup");
+    } else {
+      passport.authenticate("local")(req, res, () => {
+        res.redirect("/list");
+      });
+
+    };
+  });
+
+
+
+});
+
+app.post("/signin", (req, res) => {
+
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password
+  });
+
+  passport.authenticate("local")(req, res, () => {
+    if (req.isAuthenticated()) {
       res.redirect("/list");
     } else {
-      res.send("please try agin wrong password");
+      res.redirect("/signin");
     }
-  } catch {
-    res.send("wrong details")
-  }
+  });
 
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+});
 
 
 
