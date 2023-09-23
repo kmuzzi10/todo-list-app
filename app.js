@@ -65,6 +65,7 @@ const User = mongoose.model("user", userSchema);
 
 passport.use(User.createStrategy());
 
+
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -111,7 +112,7 @@ const defaultItem = [item1, item2, item3]
 
 
 app.get("/", (req, res) => {
-  res.render("signin",{alertMessage: "Wrong details! Please try again."})
+  res.render("signin", { alertMessage: "Wrong details! Please try again.", user: "" });
 });
 app.get("/auth/google", passport.authenticate('google', { scope: ["profile"] })
 
@@ -315,32 +316,30 @@ app.post("/signup", (req, res) => {
   });
 });
 
-app.post("/signin", (req, res) => {
-  const user = new User({
-    username: req.body.username,
-    password: req.body.password
-  });
-
+app.post("/signin", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
       // Handle error
-      return res.redirect("/");
+      return next(err);
     }
     if (!user) {
-      // Credentials galat hain, alertMessage ko EJS mein bhejo
-      return res.render("signin", { alertMessage: "Wrong details! Please try again."});
+      // Credentials are incorrect, send an alert message and render the signin page
+      return res.render("signin", { user: null, alertMessage: "Wrong details! Please try again." });
     }
 
-    // Credentials sahi hain, user ko list page par redirect karo
+
+    // Credentials are correct, log in the user
     req.login(user, (err) => {
       if (err) {
         // Handle error
-        return res.redirect("/");
+        return next(err);
       }
+      // Redirect to the list page upon successful login
       return res.redirect("/list");
     });
-  })(req, res);
+  })(req, res, next);
 });
+
 
 
 

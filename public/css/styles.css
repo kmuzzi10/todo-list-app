@@ -1,5 +1,5 @@
-/* Common styles for all screen sizes */
-html {
+body {
+  background-image: -webkit-linear-gradient(65deg, #A683E3 50%, #E4E9FD 50%);
   background-color: #E4E9FD;
   font-family: 'Helvetica Neue', sans-serif;
 }
@@ -11,12 +11,24 @@ h1 {
 }
 
 .box {
-  max-width: 100%;
-  margin: 20px;
-  padding: 20px;
+  max-width: 800px;
+  margin: 50px auto;
   background: #DFCCFB;
   border-radius: 5px;
   box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
+}
+
+.box1 {
+  max-width: 800px;
+  margin: 50px auto;
+  background: #b1a2c7;
+  border-radius: 5px;
+  box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
+}
+
+#heading {
+  background-color: #DFCCFB;
+  text-align: center;
 }
 
 .item {
@@ -30,7 +42,7 @@ h1 {
   border-bottom: 0;
 }
 
-input:checked + p {
+input:checked+p {
   text-decoration: line-through;
   text-decoration-color: #A683E3;
 }
@@ -86,26 +98,34 @@ input[type="text"]:focus {
 }
 
 /* Responsive Styles */
-@media screen and (min-width: 768px) {
+@media (min-width: 300px) and (max-width:900px) {
   h1 {
     font-size: 36px;
   }
-  
+
   .box {
     width: 80%;
-    margin: 40px auto;
+    margin: auto;
+    text-align: center;
+    max-width: 60%;
+    margin: 10px;
+    margin-left: 20%;
+    padding: 10px;
+    background: #DFCCFB;
+    border-radius: 3px;
+    box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
   }
-  
+
   p {
     font-size: 20px;
   }
-  
+
   button {
     min-height: 50px;
     width: 50px;
     font-size: 24px;
   }
-  
+
   input[type="text"] {
     height: 50px;
     top: 10px;
