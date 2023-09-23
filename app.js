@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from "express";
 import bodyParser from "body-parser";
 import mongoose, { mongo } from "mongoose";
@@ -6,6 +7,8 @@ import session from 'express-session';
 import passport from 'passport';
 import passportLocalMongoose from "passport-local-mongoose";
 import findOrCreate from "mongoose-findorcreate";
+import Google from "passport-google-oauth20";
+const GoogleStrategy = Google.Strategy;
 
 
 
@@ -18,7 +21,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(session({
-  secret: 'this is my secret and i am not gonna show',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 
@@ -31,6 +34,7 @@ app.use(passport.session());
 //mongo db
 // mongoose.connect("mongodb+srv://your uri@cluster0.2npnjpc.mongodb.net/todolistDB");
 mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
+// mongoose.set("useCreateIndex",true) 
 
 //item
 const itemsSchema = mongoose.Schema({
@@ -46,8 +50,10 @@ const listSchema = mongoose.Schema({
 const List = mongoose.model("List", listSchema);
 
 const userSchema = new mongoose.Schema({
-  email: String,
+  username: String,
   password: String,
+  email: String,
+  googleId: String,
   items: [itemsSchema],
   lists: [listSchema]
 
@@ -73,6 +79,22 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+
+//google strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET,
+  callbackURL: "http://localhost:3000/auth/google/list",
+  userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+},
+  function (accessToken, refreshToken, profile, cb) {
+    console.log(profile)
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
+
 const item1 = {
   name: "welcome to todo list"
 }
@@ -89,8 +111,19 @@ const defaultItem = [item1, item2, item3]
 
 
 app.get("/", (req, res) => {
-  res.render("signin")
+  res.render("signin",{alertMessage: "Wrong details! Please try again."})
 });
+app.get("/auth/google", passport.authenticate('google', { scope: ["profile"] })
+
+);
+
+app.get("/auth/google/list",
+  passport.authenticate('google', { failureRedirect: '/signin' }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/list");
+  });
+
 app.get("/signup", (req, res) => {
   res.render("signup.ejs")
 });
@@ -270,8 +303,7 @@ app.post("/delete", async (req, res) => {
 
 
 app.post("/signup", (req, res) => {
-
-  User.register({ username: req.body.username }, req.body.password, (err, user) => {
+  User.register(new User({ username: req.body.username, email: req.body.email }), req.body.password, (err, user) => {
     if (err) {
       console.log(err);
       res.redirect("/signup");
@@ -279,34 +311,46 @@ app.post("/signup", (req, res) => {
       passport.authenticate("local")(req, res, () => {
         res.redirect("/list");
       });
-
-    };
+    }
   });
-
-
-
 });
 
 app.post("/signin", (req, res) => {
-
   const user = new User({
     username: req.body.username,
     password: req.body.password
   });
 
-  passport.authenticate("local")(req, res, () => {
-    if (req.isAuthenticated()) {
-      res.redirect("/list");
-    } else {
-      res.redirect("/signin");
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      // Handle error
+      return res.redirect("/");
     }
-  });
+    if (!user) {
+      // Credentials galat hain, alertMessage ko EJS mein bhejo
+      return res.render("signin", { alertMessage: "Wrong details! Please try again."});
+    }
 
+    // Credentials sahi hain, user ko list page par redirect karo
+    req.login(user, (err) => {
+      if (err) {
+        // Handle error
+        return res.redirect("/");
+      }
+      return res.redirect("/list");
+    });
+  })(req, res);
 });
 
 
 
+
 //port start
+
+
+
+
+
 
 let port = process.env.PORT;
 if (port == null || port == "") {
