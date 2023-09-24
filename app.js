@@ -65,7 +65,7 @@ const User = mongoose.model("user", userSchema);
 
 passport.use(User.createStrategy());
 
-
+//serialize and deserialize
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -81,7 +81,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
-//google strategy
+//google strategy authentication 
 passport.use(new GoogleStrategy({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
