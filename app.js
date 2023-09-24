@@ -32,8 +32,8 @@ app.use(passport.session());
 
 
 //mongo db
-// mongoose.connect("mongodb+srv://your uri@cluster0.2npnjpc.mongodb.net/todolistDB");
-mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
+mongoose.connect(process.env.CONNECTION);
+// mongoose.connect("mongodb://127.0.0.1:27017/todolistDB");
 // mongoose.set("useCreateIndex",true) 
 
 //item
