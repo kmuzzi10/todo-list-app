@@ -15,7 +15,7 @@ const GoogleStrategy = Google.Strategy;
 const app = express();
 
 
-//express
+//express setup
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
