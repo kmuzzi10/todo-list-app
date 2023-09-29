@@ -50,6 +50,8 @@ const listSchema = mongoose.Schema({
 
 const List = mongoose.model("List", listSchema);
 
+
+//user schema
 const userSchema = new mongoose.Schema({
   username: String,
   password: String,
